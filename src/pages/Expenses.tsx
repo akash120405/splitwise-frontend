@@ -33,9 +33,10 @@ export default function Expenses() {
   const inputStyle = {
     width: "350px",
     padding: "10px",
-    backgroundColor: "#222",
-    color: "white",
+    backgroundColor: "#333",
+    color: "#00ff00",
     border: "1px solid #555",
+    fontWeight: "bold" as const,
   };
 
   return (
@@ -51,9 +52,7 @@ export default function Expenses() {
         style={inputStyle}
         placeholder="Group Id"
         value={groupId}
-        onChange={(e) =>
-          setGroupId(e.target.value)
-        }
+        readOnly
       />
 
       <br />
@@ -83,9 +82,7 @@ export default function Expenses() {
       <br />
       <br />
 
-      <button
-        onClick={createExpense}
-      >
+      <button onClick={createExpense}>
         Create Expense
       </button>
     </div>
