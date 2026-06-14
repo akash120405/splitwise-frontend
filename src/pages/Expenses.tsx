@@ -2,12 +2,13 @@ import { useState } from "react";
 import api from "../api/api";
 
 export default function Expenses() {
+  const savedGroupId =
+    localStorage.getItem("groupId") || "";
+
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
-
-  const [groupId, setGroupId] = useState(
-    localStorage.getItem("groupId") || ""
-  );
+  const [groupId, setGroupId] =
+    useState(savedGroupId);
 
   const createExpense = async () => {
     try {
@@ -30,15 +31,6 @@ export default function Expenses() {
     }
   };
 
-  const inputStyle = {
-    width: "350px",
-    padding: "10px",
-    backgroundColor: "#333",
-    color: "#00ff00",
-    border: "1px solid #555",
-    fontWeight: "bold" as const,
-  };
-
   return (
     <div
       style={{
@@ -48,35 +40,40 @@ export default function Expenses() {
     >
       <h1>Create Expense</h1>
 
+      <p>
+        Stored Group ID:
+        <br />
+        <b>{savedGroupId}</b>
+      </p>
+
       <input
-        style={inputStyle}
-        placeholder="Group Id"
         value={groupId}
-        readOnly
+        onChange={(e) =>
+          setGroupId(e.target.value)
+        }
+        placeholder="Group Id"
       />
 
       <br />
       <br />
 
       <input
-        style={inputStyle}
-        placeholder="Title"
         value={title}
         onChange={(e) =>
           setTitle(e.target.value)
         }
+        placeholder="Title"
       />
 
       <br />
       <br />
 
       <input
-        style={inputStyle}
-        placeholder="Amount"
         value={amount}
         onChange={(e) =>
           setAmount(e.target.value)
         }
+        placeholder="Amount"
       />
 
       <br />
