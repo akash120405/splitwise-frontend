@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/api";
 
 export default function Expenses() {
-  const savedGroupId =
-    localStorage.getItem("groupId") || "";
-
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
-  const [groupId, setGroupId] =
-    useState(savedGroupId);
+  const [groupId, setGroupId] = useState("");
+
+  useEffect(() => {
+    const storedGroupId =
+      localStorage.getItem("groupId");
+
+    if (storedGroupId) {
+      setGroupId(storedGroupId);
+    }
+  }, []);
 
   const createExpense = async () => {
     try {
@@ -39,12 +44,6 @@ export default function Expenses() {
       }}
     >
       <h1>Create Expense</h1>
-
-      <p>
-        Stored Group ID:
-        <br />
-        <b>{savedGroupId}</b>
-      </p>
 
       <input
         value={groupId}
