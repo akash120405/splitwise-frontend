@@ -1,10 +1,11 @@
-// src/pages/Balances.tsx
-
 import { useState } from "react";
 import api from "../api/api";
 
 export default function Balances() {
-  const [groupId, setGroupId] = useState("");
+  const [groupId, setGroupId] = useState(
+    localStorage.getItem("groupId") || ""
+  );
+
   const [balances, setBalances] = useState<any[]>([]);
 
   const loadBalances = async () => {
@@ -16,17 +17,25 @@ export default function Balances() {
       setBalances(res.data.balances);
     } catch (error) {
       console.error(error);
+      alert("Failed to load balances");
     }
   };
 
   return (
-    <div style={{ width: "600px", margin: "50px auto" }}>
+    <div
+      style={{
+        width: "600px",
+        margin: "50px auto",
+      }}
+    >
       <h1>Balances</h1>
 
       <input
         placeholder="Group Id"
         value={groupId}
-        onChange={(e) => setGroupId(e.target.value)}
+        onChange={(e) =>
+          setGroupId(e.target.value)
+        }
       />
 
       <button onClick={loadBalances}>

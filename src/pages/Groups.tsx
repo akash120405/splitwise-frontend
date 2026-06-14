@@ -10,14 +10,14 @@ export default function Groups() {
         name,
       });
 
-      console.log(res.data);
+      localStorage.setItem(
+        "groupId",
+        res.data.group.id
+      );
 
       alert("Group Created");
-
-      setName("");
-    } catch (err) {
-      console.error(err);
-
+    } catch (error) {
+      console.error(error);
       alert("Failed to create group");
     }
   };

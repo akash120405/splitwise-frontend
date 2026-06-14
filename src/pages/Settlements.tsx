@@ -1,11 +1,13 @@
-// src/pages/Settlements.tsx
-
 import { useState } from "react";
 import api from "../api/api";
 
 export default function Settlements() {
-  const [groupId, setGroupId] = useState("");
-  const [settlements, setSettlements] = useState<any[]>([]);
+  const [groupId, setGroupId] = useState(
+    localStorage.getItem("groupId") || ""
+  );
+
+  const [settlements, setSettlements] =
+    useState<any[]>([]);
 
   const loadSettlements = async () => {
     try {
@@ -18,17 +20,25 @@ export default function Settlements() {
       );
     } catch (error) {
       console.error(error);
+      alert("Failed to load settlements");
     }
   };
 
   return (
-    <div style={{ width: "700px", margin: "50px auto" }}>
+    <div
+      style={{
+        width: "700px",
+        margin: "50px auto",
+      }}
+    >
       <h1>Settlements</h1>
 
       <input
         placeholder="Group Id"
         value={groupId}
-        onChange={(e) => setGroupId(e.target.value)}
+        onChange={(e) =>
+          setGroupId(e.target.value)
+        }
       />
 
       <button onClick={loadSettlements}>
