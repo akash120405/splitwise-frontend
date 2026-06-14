@@ -16,20 +16,26 @@ export default function Register() {
 
   const register = async () => {
     try {
-      await api.post(
-        "/auth/register",
-        {
-          name,
-          email,
-          password,
-        }
-      );
+      const res = await api.post(
+  "/auth/register",
+  {
+    name,
+    email,
+    password,
+  }
+);
 
-      alert(
-        "Registration Successful"
-      );
+localStorage.setItem(
+  "token",
+  res.data.token
+);
 
-      navigate("/");
+localStorage.setItem(
+  "user",
+  JSON.stringify(res.data.user)
+);
+
+navigate("/dashboard");
     } catch (error) {
       console.error(error);
 
