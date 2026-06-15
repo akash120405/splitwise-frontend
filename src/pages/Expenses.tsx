@@ -5,8 +5,15 @@ export default function Expenses() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [groupId, setGroupId] = useState("");
+
   const [splitType, setSplitType] =
     useState("EQUAL");
+
+  const [members, setMembers] =
+    useState<any[]>([]);
+
+  const [paidById, setPaidById] =
+    useState("");
 
   const [participants, setParticipants] =
     useState([
@@ -22,8 +29,32 @@ export default function Expenses() {
 
     if (storedGroupId) {
       setGroupId(storedGroupId);
+      loadMembers(storedGroupId);
     }
   }, []);
+
+  const loadMembers = async (
+    currentGroupId: string
+  ) => {
+    try {
+      const res = await api.get(
+        `/groups/${currentGroupId}/members`
+      );
+
+      setMembers(res.data.members);
+
+      if (
+        res.data.members &&
+        res.data.members.length > 0
+      ) {
+        setPaidById(
+          res.data.members[0].user.id
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const addParticipant = () => {
     setParticipants([
@@ -52,15 +83,11 @@ export default function Expenses() {
 
   const createExpense = async () => {
     try {
-      const user = JSON.parse(
-        localStorage.getItem("user") || "{}"
-      );
-
-      let payload: any = {
+      const payload: any = {
         title,
         amount: Number(amount),
         groupId,
-        paidById: user.id,
+        paidById,
         splitType,
       };
 
@@ -72,18 +99,22 @@ export default function Expenses() {
             ) {
               return {
                 userId: p.userId,
-                amount: Number(p.value),
+                amount: Number(
+                  p.value
+                ),
               };
             }
 
             if (
-              splitType === "PERCENTAGE"
+              splitType ===
+              "PERCENTAGE"
             ) {
               return {
                 userId: p.userId,
-                percentage: Number(
-                  p.value
-                ),
+                percentage:
+                  Number(
+                    p.value
+                  ),
               };
             }
 
@@ -107,8 +138,16 @@ export default function Expenses() {
 
       setTitle("");
       setAmount("");
+
+      setParticipants([
+        {
+          userId: "",
+          value: "",
+        },
+      ]);
     } catch (error) {
       console.error(error);
+
       alert(
         "Failed to create expense"
       );
@@ -118,78 +157,131 @@ export default function Expenses() {
   return (
     <div
       style={{
-        width: "600px",
-        margin: "50px auto",
+        maxWidth: "800px",
+        margin: "40px auto",
+        padding: "30px",
+        background: "#16213e",
+        borderRadius: "15px",
+        color: "white",
       }}
     >
-      <h1>Create Expense</h1>
-
-      <input
-        value={groupId}
-        onChange={(e) =>
-          setGroupId(e.target.value)
-        }
-        placeholder="Group Id"
-      />
-
-      <br />
-      <br />
-
-      <input
-        value={title}
-        onChange={(e) =>
-          setTitle(e.target.value)
-        }
-        placeholder="Title"
-      />
-
-      <br />
-      <br />
-
-      <input
-        value={amount}
-        onChange={(e) =>
-          setAmount(e.target.value)
-        }
-        placeholder="Amount"
-      />
-
-      <br />
-      <br />
-
-      <select
-        value={splitType}
-        onChange={(e) =>
-          setSplitType(
-            e.target.value
-          )
-        }
+      <h1
+        style={{
+          textAlign: "center",
+        }}
       >
-        <option value="EQUAL">
-          EQUAL
-        </option>
+        Create Expense
+      </h1>
 
-        <option value="UNEQUAL">
-          UNEQUAL
-        </option>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+        }}
+      >
+        <input
+          value={title}
+          onChange={(e) =>
+            setTitle(
+              e.target.value
+            )
+          }
+          placeholder="Expense Title"
+          style={{
+            padding: "12px",
+          }}
+        />
 
-        <option value="PERCENTAGE">
-          PERCENTAGE
-        </option>
+        <input
+          value={amount}
+          onChange={(e) =>
+            setAmount(
+              e.target.value
+            )
+          }
+          placeholder="Amount"
+          style={{
+            padding: "12px",
+          }}
+        />
 
-        <option value="SHARE">
-          SHARE
-        </option>
-      </select>
+        <label>
+          Paid By
+        </label>
 
-      <br />
-      <br />
+        <select
+          value={paidById}
+          onChange={(e) =>
+            setPaidById(
+              e.target.value
+            )
+          }
+          style={{
+            padding: "12px",
+          }}
+        >
+          {members.map(
+            (member) => (
+              <option
+                key={
+                  member.user.id
+                }
+                value={
+                  member.user.id
+                }
+              >
+                {
+                  member.user
+                    .name
+                }
+              </option>
+            )
+          )}
+        </select>
+
+        <label>
+          Split Type
+        </label>
+
+        <select
+          value={splitType}
+          onChange={(e) =>
+            setSplitType(
+              e.target.value
+            )
+          }
+          style={{
+            padding: "12px",
+          }}
+        >
+          <option value="EQUAL">
+            Equal
+          </option>
+
+          <option value="UNEQUAL">
+            Unequal
+          </option>
+
+          <option value="PERCENTAGE">
+            Percentage
+          </option>
+
+          <option value="SHARE">
+            Share
+          </option>
+        </select>
+      </div>
 
       {splitType !== "EQUAL" && (
         <>
-          <h3>
+          <h2
+            style={{
+              marginTop: "30px",
+            }}
+          >
             Participants
-          </h3>
+          </h2>
 
           {participants.map(
             (
@@ -199,25 +291,69 @@ export default function Expenses() {
               <div
                 key={index}
                 style={{
+                  display:
+                    "flex",
+                  gap: "10px",
                   marginBottom:
-                    "10px",
+                    "15px",
                 }}
               >
-                <input
-                  placeholder="User Id"
+                <select
                   value={
                     participant.userId
                   }
-                  onChange={(e) =>
+                  onChange={(
+                    e
+                  ) =>
                     updateParticipant(
                       index,
                       "userId",
-                      e.target.value
+                      e.target
+                        .value
                     )
                   }
-                />
+                  style={{
+                    flex: 1,
+                    padding:
+                      "10px",
+                  }}
+                >
+                  <option value="">
+                    Select Member
+                  </option>
+
+                  {members.map(
+                    (
+                      member
+                    ) => (
+                      <option
+                        key={
+                          member
+                            .user
+                            .id
+                        }
+                        value={
+                          member
+                            .user
+                            .id
+                        }
+                      >
+                        {
+                          member
+                            .user
+                            .name
+                        }
+                      </option>
+                    )
+                  )}
+                </select>
 
                 <input
+                  style={{
+                    flex: 1,
+                    padding:
+                      "10px",
+                  }}
                   placeholder={
                     splitType ===
                     "UNEQUAL"
@@ -230,11 +366,14 @@ export default function Expenses() {
                   value={
                     participant.value
                   }
-                  onChange={(e) =>
+                  onChange={(
+                    e
+                  ) =>
                     updateParticipant(
                       index,
                       "value",
-                      e.target.value
+                      e.target
+                        .value
                     )
                   }
                 />
@@ -246,20 +385,48 @@ export default function Expenses() {
             onClick={
               addParticipant
             }
+            style={{
+              padding:
+                "10px 20px",
+              marginTop:
+                "10px",
+            }}
           >
             Add Participant
           </button>
-
-          <br />
-          <br />
         </>
       )}
 
-      <button
-        onClick={createExpense}
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: "30px",
+        }}
       >
-        Create Expense
-      </button>
+        <button
+          onClick={
+            createExpense
+          }
+          style={{
+            padding:
+              "12px 30px",
+            fontSize:
+              "16px",
+            background:
+              "#4CAF50",
+            color:
+              "white",
+            border:
+              "none",
+            borderRadius:
+              "8px",
+            cursor:
+              "pointer",
+          }}
+        >
+          Create Expense
+        </button>
+      </div>
     </div>
   );
 }

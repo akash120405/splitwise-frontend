@@ -8,10 +8,12 @@ import Balances from "./pages/Balances";
 import Settlements from "./pages/Settlements";
 import Expenses from "./pages/Expenses";
 import Groups from "./pages/Groups";
+import ExpenseHistory from "./pages/ExpenseHistory";
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/history" element={<ExpenseHistory />} />
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
