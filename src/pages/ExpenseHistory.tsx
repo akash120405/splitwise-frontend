@@ -12,9 +12,9 @@ export default function ExpenseHistory() {
     async () => {
       try {
         const res =
-  await api.get(
-    `/expenses/groups/${groupId}/expenses`
-  );
+          await api.get(
+            `/expenses/groups/${groupId}/expenses`
+          );
 
         setExpenses(
           res.data.expenses
@@ -23,6 +23,35 @@ export default function ExpenseHistory() {
         console.error(error);
       }
     };
+
+  const deleteExpense = async (
+    expenseId: string
+  ) => {
+    const confirmDelete =
+      window.confirm(
+        "Delete this expense?"
+      );
+
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(
+        `/expenses/${expenseId}`
+      );
+
+      await loadExpenses();
+
+      alert(
+        "Expense deleted successfully"
+      );
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Failed to delete expense"
+      );
+    }
+  };
 
   useEffect(() => {
     loadExpenses();
@@ -52,50 +81,39 @@ export default function ExpenseHistory() {
             style={{
               background:
                 "#16213e",
-
               borderRadius:
                 "20px",
-
               padding: "20px",
-
               marginBottom:
                 "20px",
-
               boxShadow:
                 "0 10px 25px rgba(0,0,0,0.25)",
             }}
           >
             <h2>
-              {
-                expense.title
-              }
+              {expense.title}
             </h2>
 
             <p>
-              💰 Amount:
-              ₹
-              {
-                expense.amount
-              }
+              💰 Amount: ₹
+              {expense.amount}
             </p>
 
             <p>
               👤 Paid By:
-              {
-                expense.paidBy
-                  .name
-              }
+              {" "}
+              {expense.paidBy.name}
             </p>
 
             <p>
               📊 Split:
-              {
-                expense.splitType
-              }
+              {" "}
+              {expense.splitType}
             </p>
 
             <p>
               📅 Date:
+              {" "}
               {new Date(
                 expense.createdAt
               ).toLocaleString()}
@@ -107,39 +125,95 @@ export default function ExpenseHistory() {
               Participants
             </h4>
 
-            {expense.participants.map(
-              (
-                p: any
-              ) => (
-                <div
-                  key={p.id}
-                  style={{
-                    display:
-                      "flex",
+            {expense.participants
+              .length === 0 ? (
+              <p>
+                No participants
+              </p>
+            ) : (
+              expense.participants.map(
+                (
+                  p: any
+                ) => (
+                  <div
+                    key={p.id}
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "space-between",
+                      padding:
+                        "5px 0",
+                    }}
+                  >
+                    <span>
+                      {
+                        p.user
+                          .name
+                      }
+                    </span>
 
-                    justifyContent:
-                      "space-between",
-
-                    padding:
-                      "5px 0",
-                  }}
-                >
-                  <span>
-                    {
-                      p.user
-                        .name
-                    }
-                  </span>
-
-                  <span>
-                    ₹
-                    {
-                      p.owedAmount
-                    }
-                  </span>
-                </div>
+                    <span>
+                      ₹
+                      {
+                        p.owedAmount
+                      }
+                    </span>
+                  </div>
+                )
               )
             )}
+
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginTop: "20px",
+              }}
+            >
+              <button
+                onClick={() =>
+                  deleteExpense(
+                    expense.id
+                  )
+                }
+                style={{
+                  background:
+                    "#dc2626",
+                  color: "white",
+                  border: "none",
+                  padding:
+                    "10px 18px",
+                  borderRadius:
+                    "8px",
+                  cursor:
+                    "pointer",
+                  fontWeight:
+                    "bold",
+                }}
+              >
+                🗑 Delete
+              </button>
+
+              <button
+                style={{
+                  background:
+                    "#2563eb",
+                  color: "white",
+                  border: "none",
+                  padding:
+                    "10px 18px",
+                  borderRadius:
+                    "8px",
+                  cursor:
+                    "pointer",
+                  fontWeight:
+                    "bold",
+                }}
+              >
+                ✏ Edit
+              </button>
+            </div>
           </div>
         )
       )}
