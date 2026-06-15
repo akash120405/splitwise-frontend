@@ -1,19 +1,57 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/api";
 
+interface Member {
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 export default function Groups() {
-  const [name, setName] =
+  const [groupName, setGroupName] =
     useState("");
 
   const [groupId, setGroupId] =
     useState(
-      localStorage.getItem(
-        "groupId"
-      ) || ""
+      localStorage.getItem("groupId") || ""
     );
 
-  const [userId, setUserId] =
+  const [memberName, setMemberName] =
     useState("");
+
+  const [memberEmail, setMemberEmail] =
+    useState("");
+
+  const [members, setMembers] =
+    useState<Member[]>([]);
+
+  const [message, setMessage] =
+    useState("");
+
+  const fetchMembers =
+    async () => {
+      if (!groupId) return;
+
+      try {
+        const res =
+          await api.get(
+            `/groups/${groupId}/members`
+          );
+
+        setMembers(
+          res.data.members
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  useEffect(() => {
+    fetchMembers();
+  }, [groupId]);
 
   const createGroup =
     async () => {
@@ -22,49 +60,71 @@ export default function Groups() {
           await api.post(
             "/groups",
             {
-              name,
+              name: groupName,
             }
           );
 
+        const newGroupId =
+          res.data.group.id;
+
         localStorage.setItem(
           "groupId",
-          res.data.group.id
+          newGroupId
         );
 
         setGroupId(
-          res.data.group.id
+          newGroupId
         );
 
-        alert(
-          "Group Created"
+        setMessage(
+          "✅ Group created successfully"
         );
+
+        setGroupName("");
       } catch (error) {
         console.error(error);
-        alert(
-          "Failed to create group"
+
+        setMessage(
+          "❌ Failed to create group"
         );
       }
     };
 
   const addMember =
     async () => {
+      if (
+        !memberName ||
+        !memberEmail
+      ) {
+        setMessage(
+          "❌ Name and Email required"
+        );
+
+        return;
+      }
+
       try {
         await api.post(
           `/groups/${groupId}/members`,
           {
-            userId,
+            name: memberName,
+            email: memberEmail,
           }
         );
 
-        alert(
-          "Member Added"
+        setMessage(
+          "✅ Member added successfully"
         );
 
-        setUserId("");
+        setMemberName("");
+        setMemberEmail("");
+
+        fetchMembers();
       } catch (error) {
         console.error(error);
-        alert(
-          "Failed to add member"
+
+        setMessage(
+          "❌ Failed to add member"
         );
       }
     };
@@ -72,67 +132,213 @@ export default function Groups() {
   return (
     <div
       style={{
-        width: "600px",
-        margin: "50px auto",
+        maxWidth: "900px",
+        margin: "40px auto",
+        padding: "20px",
+        color: "white",
       }}
     >
-      <h1>Groups</h1>
-
-      <h2>
-        Create Group
-      </h2>
-
-      <input
-        placeholder="Group Name"
-        value={name}
-        onChange={(e) =>
-          setName(
-            e.target.value
-          )
-        }
-      />
-
-      <button
-        onClick={
-          createGroup
-        }
+      <h1
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+        }}
       >
-        Create
-      </button>
+        SplitWise Groups
+      </h1>
 
-      <hr />
+      {message && (
+        <div
+          style={{
+            background: "#1e293b",
+            padding: "12px",
+            borderRadius: "10px",
+            marginBottom: "20px",
+          }}
+        >
+          {message}
+        </div>
+      )}
 
-      <h2>
-        Current Group
-      </h2>
+      {/* CREATE GROUP */}
 
-      <p>
-        Group ID:
-        {" "}
-        {groupId}
-      </p>
-
-      <hr />
-
-      <h2>
-        Add Member
-      </h2>
-
-      <input
-        placeholder="User Id"
-        value={userId}
-        onChange={(e) =>
-          setUserId(
-            e.target.value
-          )
-        }
-      />
-
-      <button
-        onClick={addMember}
+      <div
+        style={{
+          background: "#1e293b",
+          padding: "20px",
+          borderRadius: "12px",
+          marginBottom: "20px",
+        }}
       >
-        Add Member
-      </button>
+        <h2>Create Group</h2>
+
+        <input
+          placeholder="Group Name"
+          value={groupName}
+          onChange={(e) =>
+            setGroupName(
+              e.target.value
+            )
+          }
+          style={{
+            width: "70%",
+            padding: "10px",
+            marginRight: "10px",
+          }}
+        />
+
+        <button
+          onClick={
+            createGroup
+          }
+          style={{
+            padding:
+              "10px 20px",
+            cursor: "pointer",
+          }}
+        >
+          Create
+        </button>
+      </div>
+
+      {/* CURRENT GROUP */}
+
+      <div
+        style={{
+          background: "#1e293b",
+          padding: "20px",
+          borderRadius: "12px",
+          marginBottom: "20px",
+        }}
+      >
+        <h2>Current Group</h2>
+
+        <p>
+          <strong>
+            Group ID:
+          </strong>{" "}
+          {groupId ||
+            "No group selected"}
+        </p>
+      </div>
+
+      {/* MEMBERS */}
+
+      <div
+        style={{
+          background: "#1e293b",
+          padding: "20px",
+          borderRadius: "12px",
+          marginBottom: "20px",
+        }}
+      >
+        <h2>
+          Group Members
+        </h2>
+
+        {members.length ===
+        0 ? (
+          <p>
+            No members yet
+          </p>
+        ) : (
+          members.map(
+            (member) => (
+              <div
+                key={
+                  member.id
+                }
+                style={{
+                  padding:
+                    "10px",
+                  marginBottom:
+                    "10px",
+                  border:
+                    "1px solid #334155",
+                  borderRadius:
+                    "8px",
+                }}
+              >
+                <div>
+                  👤{" "}
+                  <strong>
+                    {
+                      member
+                        .user
+                        .name
+                    }
+                  </strong>
+                </div>
+
+                <div>
+                  {
+                    member
+                      .user
+                      .email
+                  }
+                </div>
+              </div>
+            )
+          )
+        )}
+      </div>
+
+      {/* ADD MEMBER */}
+
+      <div
+        style={{
+          background: "#1e293b",
+          padding: "20px",
+          borderRadius: "12px",
+        }}
+      >
+        <h2>Add Member</h2>
+
+        <input
+          placeholder="Name"
+          value={memberName}
+          onChange={(e) =>
+            setMemberName(
+              e.target.value
+            )
+          }
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginBottom:
+              "10px",
+          }}
+        />
+
+        <input
+          placeholder="Email"
+          value={memberEmail}
+          onChange={(e) =>
+            setMemberEmail(
+              e.target.value
+            )
+          }
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginBottom:
+              "10px",
+          }}
+        />
+
+        <button
+          onClick={
+            addMember
+          }
+          style={{
+            padding:
+              "10px 20px",
+            cursor: "pointer",
+          }}
+        >
+          Add Member
+        </button>
+      </div>
     </div>
   );
 }
