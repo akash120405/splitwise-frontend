@@ -4,6 +4,14 @@ import api from "../api/api";
 export default function ExpenseHistory() {
   const [expenses, setExpenses] =
     useState<any[]>([]);
+  const [editingExpenseId, setEditingExpenseId] =
+  useState("");
+
+const [editedTitle, setEditedTitle] =
+  useState("");
+
+const [editedAmount, setEditedAmount] =
+  useState("");
 
   const groupId =
     localStorage.getItem("groupId") || "";
@@ -52,6 +60,35 @@ export default function ExpenseHistory() {
       );
     }
   };
+  const updateExpense = async (
+  expenseId: string
+) => {
+  try {
+    await api.put(
+      `/expenses/${expenseId}`,
+      {
+        title: editedTitle,
+        amount: Number(
+          editedAmount
+        ),
+      }
+    );
+
+    alert(
+      "Expense updated"
+    );
+
+    setEditingExpenseId("");
+
+    loadExpenses();
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      "Update failed"
+    );
+  }
+};
 
   useEffect(() => {
     loadExpenses();
@@ -99,14 +136,38 @@ export default function ExpenseHistory() {
                   "0 10px 25px rgba(0,0,0,0.25)",
               }}
             >
-              <h2>
-                {expense.title}
-              </h2>
+              {editingExpenseId ===
+expense.id ? (
+  <input
+    value={editedTitle}
+    onChange={(e) =>
+      setEditedTitle(
+        e.target.value
+      )
+    }
+  />
+) : (
+  <h2>
+    {expense.title}
+  </h2>
+)}
 
-              <p>
-                💰 Amount: ₹
-                {expense.amount}
-              </p>
+              {editingExpenseId ===
+expense.id ? (
+  <input
+    value={editedAmount}
+    onChange={(e) =>
+      setEditedAmount(
+        e.target.value
+      )
+    }
+  />
+) : (
+  <p>
+    💰 Amount: ₹
+    {expense.amount}
+  </p>
+)}
 
               <p>
                 👤 Paid By:{" "}
@@ -211,32 +272,36 @@ export default function ExpenseHistory() {
                   🗑 Delete
                 </button>
 
-                <button
-                  onClick={() =>
-                    alert(
-                      "Edit feature coming next"
-                    )
-                  }
-                  style={{
-                    background:
-                      "#2563eb",
-                    color:
-                      "white",
-                    border:
-                      "none",
-                    padding:
-                      "10px 18px",
-                    borderRadius:
-                      "8px",
-                    cursor:
-                      "pointer",
-                    fontWeight:
-                      "bold",
-                    flex: 1,
-                  }}
-                >
-                  ✏ Edit
-                </button>
+                {editingExpenseId ===
+expense.id ? (
+  <button
+    onClick={() =>
+      updateExpense(
+        expense.id
+      )
+    }
+  >
+    💾 Save
+  </button>
+) : (
+  <button
+    onClick={() => {
+      setEditingExpenseId(
+        expense.id
+      );
+
+      setEditedTitle(
+        expense.title
+      );
+
+      setEditedAmount(
+        expense.amount
+      );
+    }}
+  >
+    ✏ Edit
+  </button>
+)}
               </div>
             </div>
           )
