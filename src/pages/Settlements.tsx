@@ -2,17 +2,20 @@ import { useState } from "react";
 import api from "../api/api";
 
 export default function Settlements() {
-  const [groupId, setGroupId] = useState(
-    localStorage.getItem("groupId") || ""
-  );
-
   const [settlements, setSettlements] =
     useState<any[]>([]);
 
-  const loadSettlements = async () => {
+  const groupId =
+    localStorage.getItem("groupId") || "";
+
+  const generateSettlements = async () => {
     try {
+      await api.post(
+        `/settlements/${groupId}`
+      );
+
       const res = await api.get(
-        `/groups/${groupId}/settlements`
+        "/settlements"
       );
 
       setSettlements(
@@ -20,7 +23,7 @@ export default function Settlements() {
       );
     } catch (error) {
       console.error(error);
-      alert("Failed to load settlements");
+      alert("Failed");
     }
   };
 
@@ -33,25 +36,38 @@ export default function Settlements() {
     >
       <h1>Settlements</h1>
 
-      <input
-        placeholder="Group Id"
-        value={groupId}
-        onChange={(e) =>
-          setGroupId(e.target.value)
-        }
-      />
-
-      <button onClick={loadSettlements}>
-        Generate
+      <button
+        onClick={generateSettlements}
+      >
+        Generate Settlements
       </button>
 
-      <pre>
-        {JSON.stringify(
-          settlements,
-          null,
-          2
-        )}
-      </pre>
+      <hr />
+
+      {settlements.map((s) => (
+        <div
+          key={s.id}
+          style={{
+            padding: "10px",
+            border: "1px solid #ddd",
+            marginBottom: "10px",
+          }}
+        >
+          <strong>
+            {s.payer.name}
+          </strong>
+
+          {" pays "}
+
+          <strong>
+            {s.receiver.name}
+          </strong>
+
+          {" ₹"}
+
+          {s.amount}
+        </div>
+      ))}
     </div>
   );
 }
